@@ -1,0 +1,1290 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion" lang="en">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.1" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="android_m,android_n,Power," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.1.1" />
+
+
+
+
+
+
+<meta name="description" content="本文的mardkown源文件位于： 本文基于下文的修改：Android6.0中PowerManagerService分析 1 概述一直以来,电源管理是电子产品设计中非常重要的环节，也是任何电子设备中最为重要的系统模块之一，优秀的电源管理方案，能够提供持久的续航能力，良好的用户体验，更能提升电子产品的竞争力。 移动设备的电量主要由两种元件消耗：CPU和显示屏，因此设法降低这两种元件的耗电量就是电源管">
+<meta name="keywords" content="android_m,android_n,Power">
+<meta property="og:type" content="article">
+<meta property="og:title" content="PowerManagerService分析，适用于android 6.0, 7.0">
+<meta property="og:url" content="https://wu0655.github.io/2017/07/17/android/power/PowerManagerService/PowerManagerService分析/index.html">
+<meta property="og:site_name" content="飞鸟的笔记">
+<meta property="og:description" content="本文的mardkown源文件位于： 本文基于下文的修改：Android6.0中PowerManagerService分析 1 概述一直以来,电源管理是电子产品设计中非常重要的环节，也是任何电子设备中最为重要的系统模块之一，优秀的电源管理方案，能够提供持久的续航能力，良好的用户体验，更能提升电子产品的竞争力。 移动设备的电量主要由两种元件消耗：CPU和显示屏，因此设法降低这两种元件的耗电量就是电源管">
+<meta property="og:image" content="https://wu0655.github.io/2017/07/17/android/power/PowerManagerService/PowerManagerService分析/PowerManagerService_analysis/power_framework.png">
+<meta property="og:image" content="https://wu0655.github.io/2017/07/17/android/power/PowerManagerService/PowerManagerService分析/PowerManagerService_analysis/init.png">
+<meta property="og:image" content="https://wu0655.github.io/2017/07/17/android/power/PowerManagerService/PowerManagerService分析/PowerManagerService_analysis/wakeup.png">
+<meta property="og:image" content="https://wu0655.github.io/2017/07/17/android/power/PowerManagerService/PowerManagerService分析/PowerManagerService_analysis/call.png">
+<meta property="og:image" content="https://wu0655.github.io/2017/07/17/android/power/PowerManagerService/PowerManagerService分析/PowerManagerService_analysis/acquire.png">
+<meta property="og:image" content="https://wu0655.github.io/2017/07/17/android/power/PowerManagerService/PowerManagerService分析/PowerManagerService_analysis/release.png">
+<meta property="og:image" content="https://wu0655.github.io/2017/07/17/android/power/PowerManagerService/PowerManagerService分析/PowerManagerService_analysis/updatePowerStateLocked.png">
+<meta property="og:updated_time" content="2017-07-18T15:26:56.796Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="PowerManagerService分析，适用于android 6.0, 7.0">
+<meta name="twitter:description" content="本文的mardkown源文件位于： 本文基于下文的修改：Android6.0中PowerManagerService分析 1 概述一直以来,电源管理是电子产品设计中非常重要的环节，也是任何电子设备中最为重要的系统模块之一，优秀的电源管理方案，能够提供持久的续航能力，良好的用户体验，更能提升电子产品的竞争力。 移动设备的电量主要由两种元件消耗：CPU和显示屏，因此设法降低这两种元件的耗电量就是电源管">
+<meta name="twitter:image" content="https://wu0655.github.io/2017/07/17/android/power/PowerManagerService/PowerManagerService分析/PowerManagerService_analysis/power_framework.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    sidebar: {"position":"left","display":"always","offset":12,"offset_float":0,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: 'Author'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="https://wu0655.github.io/2017/07/17/android/power/PowerManagerService/PowerManagerService分析/"/>
+
+
+
+
+
+  <title>PowerManagerService分析，适用于android 6.0, 7.0 | 飞鸟的笔记</title>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="en">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">飞鸟的笔记</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">聚沙成塔</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            Home
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            Categories
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            About
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            Archives
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            Tags
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br />
+            
+            Search
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off"
+             placeholder="Searching..." spellcheck="false"
+             type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+    <link itemprop="mainEntityOfPage" href="https://wu0655.github.io/2017/07/17/android/power/PowerManagerService/PowerManagerService分析/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="飞鸟">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="飞鸟的笔记">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">PowerManagerService分析，适用于android 6.0, 7.0</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2017-07-17T10:26:36+08:00">
+                2017-07-17
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">In</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/android/" itemprop="url" rel="index">
+                    <span itemprop="name">android</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>本文的mardkown源文件位于：</p>
+<p>本文基于下文的修改：<br><a href="http://www.chongchonggou.com/g_50812011.html" target="_blank" rel="external">Android6.0中PowerManagerService分析</a></p>
+<h1 id="1-概述"><a href="#1-概述" class="headerlink" title="1 概述"></a>1 概述</h1><p>一直以来,电源管理是电子产品设计中非常重要的环节，也是任何电子设备中最为重要的系统模块之一，优秀的电源管理方案，能够提供持久的续航能力，良好的用户体验，更能提升电子产品的竞争力。</p>
+<p>移动设备的电量主要由两种元件消耗：<strong>CPU和显示屏</strong>，因此设法降低这两种元件的耗电量就是电源管理的关键，为移动设备设计的CPU大多有两种工作频率，为了省电，大部分时间内cpu都工作在降低频率下，只有进行密集计算时，如视频解码才会切换到高频状态，而显示屏省电的方法是尽量减少亮屏时间，但是显示屏的开关和应用有很大的关系，因此系统中需要有一套机制来控制显示屏的开关和亮度，这也是电源管理的主要工作。</p>
+<p>[Comment]从PowerManagerService代码的实现上说，重点的与控制CPU和显示。不过<br><strong>移动设备的电量主要由两种元件消耗：CPU和显示屏</strong> 的说法有理论依据吗？</p>
+<h1 id="2-电源管理架构"><a href="#2-电源管理架构" class="headerlink" title="2 电源管理架构"></a>2 电源管理架构</h1><p>Android的电源管理主要是通过wakelock机制来管理系统的状态，整个android电源管理，可以分为四个层次：<br>应用接口层（PowerManager.java）,<br>Framework层（PowerManagerService.java）,<br>HAL层（Power.c），<br>和内核层（kernel/Power）。</p>
+<ul>
+<li>应用接口层:PowerManager中开放给应用一系列接口，应用可以调用PM的接口申请wakelock，唤醒系统，使系统进入睡眠等操作；</li>
+<li>Framework层：应用调用PowerManager开放的接口，来对系统进行一些列的操作是在PowerManagerService中完成的，PowerManagerService计算系统中和Power相关的计算，是整个电源管理的决策系统。同时协调Power如何与系统其它模块的交互，比如亮屏，暗屏，系统睡眠，唤醒等等。</li>
+<li>HAL层：该层只有一个power.c文件，该文件通过上层传下来的参数，向/sys/power/wake_lock或者/sys/power/wake_unlock文件节点写数据来与kernel进行通信，主要功能是申请/释放锁，维持屏幕亮灭</li>
+<li>Kernel层：内核层实现电源管理的方案主要包含三个部分：<ol>
+<li>Kernel/power/：实现了系统电源管理框架机制</li>
+<li>Arch/arm(ormips or powerpc)/mach-XXX/pm.c：实现对特定板的处理器电源管理。</li>
+<li>drivers/power：是设备电源管理的基础框架，为驱动提供了电源管理接口。</li>
+</ol>
+</li>
+</ul>
+<p>Android电源管理框架如下图：<br><img src="PowerManagerService_analysis/power_framework.png" alt="image"></p>
+<h1 id="3-电源管理服务——PowerManagerService"><a href="#3-电源管理服务——PowerManagerService" class="headerlink" title="3 电源管理服务——PowerManagerService"></a>3 电源管理服务——PowerManagerService</h1><p>PowerManagerServcie是android系统电源管理的核心服务，它在Framework层建立起一个策略控制方案，向下决策HAL层以及kernel层来控制设备待机状态，控制显示屏，背光灯，距离传感器，光线传感器等硬件设备的状态。向上提供给应用程序相应的操作接口，比如听音乐时持续保持系统唤醒，应用通知来临唤醒手机屏幕等场景</p>
+<h2 id="3-1-init过程"><a href="#3-1-init过程" class="headerlink" title="3.1 init过程"></a>3.1 init过程</h2><p><img src="PowerManagerService_analysis/init.png" alt="image"></p>
+<p>SystemServer在系统启动的时候会启动三类服务：引导关键服务，核心服务，其他服务；<br>PowerManagerService init过程如下：<br><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div></pre></td><td class="code"><pre><div class="line">SystemServer.main()</div><div class="line">	SystemServer.startBootstrapServices()</div><div class="line">		mPowerManagerService =</div><div class="line">					mSystemServiceManager.startService(PowerManagerService.class)</div><div class="line">			PowerManagerService()</div><div class="line">			PowerManagerService.onStart()</div><div class="line">		.</div><div class="line">	SystemServer.startCoreServices()</div><div class="line">		.</div><div class="line">		.</div><div class="line">	SystemServer.StartOtherService()</div><div class="line">		mPowerManagerService.systemReady(</div><div class="line">									mActivityManagerService.getAppOpsService());</div><div class="line">		mSystemServiceManager.startBootPhase(</div><div class="line">									SystemService.PHASE_THIRD_PARTY_APPS_CAN_START);</div><div class="line">			mPowerManagerService.onBootPhase()</div><div class="line">		.</div><div class="line">	ActivityManagerService.finishBooting()</div><div class="line">		mSystemServiceManager.startBootPhase(</div><div class="line">									SystemService.PHASE_BOOT_COMPLETED);</div><div class="line">			mPowerManagerService.onBootPhase()</div></pre></td></tr></table></figure></p>
+<p>基本上，就是<br><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line">service = <span class="keyword">new</span> PowerManagerService();</div><div class="line">service.onStart();</div><div class="line">service.onBootPhase();</div><div class="line">service.systemReady();</div><div class="line">service.onBootPhase();</div></pre></td></tr></table></figure></p>
+<p>初始化完成后，PowerManagerService有三个部分：</p>
+<ul>
+<li>mHandlerThread;<br>  PowerManagerService的thead,处理消息。</li>
+<li>BinderService();<br>  Binder server,提供Binder调用</li>
+<li>LocalService();<br>  供SystemService内部调用的接口</li>
+</ul>
+<p>将mWakefulness 置成WAKEFULNESS_AWAKE状态，mWakefulness 标识系统当前状态共有四种定义：</p>
+<ul>
+<li>WAKEFULNESS_ASLEEP：表示系统当前处于休眠状态，只能被wakeUp()调用唤醒。</li>
+<li>WAKEFULNESS_AWAKE：表示系统目前处于正常运行状态。</li>
+<li>WAKEFULNESS_DREAMING：表示系统当前正处于屏保的状态。</li>
+<li>WAKEFULNESS_DOZING：表示系统正处于“doze”状态。这种状态下只有低耗电的“屏保”可以运行，其他应用进程都被挂起。</li>
+</ul>
+<h2 id="3-2-相关接口"><a href="#3-2-相关接口" class="headerlink" title="3.2 相关接口"></a>3.2 相关接口</h2><p>PowerManager是一个final类，向应用提供了相应的接口，以供应用程序调用，来改变系统待机状态，屏幕状态，屏幕亮度等，PowerManager是PowerManagerService的代理类，PowerManager向上层应用提供交互的接口，具体的处理工作在PowerManagerService中完成。<br>下面介绍PowerManager中提供的相应接口作用：</p>
+<ul>
+<li>Wakeup()：强制系统从睡眠状态唤醒，此接口对应用是不开放的，应用想唤醒系统必须通过设置亮屏标志（后面即将讲到）；</li>
+<li>gotoSleep()：强制系统进入到睡眠状态，此接口也是应用不开放。</li>
+<li>userActivity()：向PowerManagerService报告影响系统休眠的用户活动，重计算灭屏时间，背光亮度等，例如触屏，划屏，power键等用户活动；</li>
+<li>Wakelock：wakelock是PowerManager的一个内部类，提供了相关的接口来操作wakelock锁，<ul>
+<li>newWakeLock()方法来创建wakelock锁，</li>
+<li>acquire()和release()方法来申请和释放锁。</li>
+</ul>
+</li>
+<li>isDeviceIdleMode()：返回设备当前的状态，如果处于Idle状态，则返回true，Idle状态是在手机长时间没有被使用以及没有运动的情况下，手机进入到一种Doze低功耗的模式下，这种状态下手机可能会关掉网络数据访问，可以通过监视DEVICE_IDLE_MODE_CHANGED这个广播信息，来监控手机状态的改变</li>
+</ul>
+<h3 id="3-2-1-唤醒——wakeup"><a href="#3-2-1-唤醒——wakeup" class="headerlink" title="3.2.1 唤醒——wakeup"></a>3.2.1 唤醒——wakeup</h3><p>[comment]andoird n 上已经取消了@hide属性<br>PowerManager的wakeup接口属性是@hide的，所以对于上层应用是不可见的，上层应用要唤醒系统大都依靠两种方式：</p>
+<ul>
+<li>在应用启动Activity时候设置相应的window的flags，通过WMS来唤醒系统；</li>
+<li>在应用申请wakelock锁时附带ACQUIRE_CAUSES_WAKEUP标志；</li>
+</ul>
+<p>Wakeup流程如下图所示<br><img src="PowerManagerService_analysis/wakeup.png" alt="image"></p>
+<ol>
+<li><p>PowerManager的wakeup接口，可供应用程序调用，来强制唤醒系统，如果该设备处于睡眠状态，调用该接口会立即唤醒系统，比如按Power键，来电，闹钟等场景都会调用该接口。唤醒系统需要android.Manifest.permission#DEVICE_POWER的权限；</p>
+</li>
+<li><p>我们来看看PowerManagerServcie中wakeup接口的代码：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">mContext.enforceCallingOrSelfPermission(android.Manifest.permission.DEVICE_POWER, <span class="keyword">null</span>);</div><div class="line"><span class="keyword">final</span> <span class="keyword">int</span> uid = Binder.getCallingUid();</div><div class="line"><span class="keyword">final</span> <span class="keyword">long</span> ident = Binder.clearCallingIdentity();</div><div class="line">wakeUpInternal(eventTime, reason, uid, opPackageName, uid);</div></pre></td></tr></table></figure>
+</li>
+</ol>
+<p>Wakeup接口中仅仅是对调用者的权限进行检查；然后放到wakeUpInternal()中处理，wakeUpInternal()中没有做操作，只是调用wakeUpNoUpdateLocked()函数，然后更新调用updatePowerStateLocked()更新电源状态</p>
+<ol>
+<li>wakeUpNoUpdateLocked()关键代码<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line">mLastWakeTime = eventTime;</div><div class="line">setWakefulnessLocked(WAKEFULNESS_AWAKE, <span class="number">0</span>);</div><div class="line">mNotifier.onWakeUp(reason, reasonUid, opPackageName, opUid);</div><div class="line">userActivityNoUpdateLocked(</div><div class="line">	eventTime, PowerManager.USER_ACTIVITY_EVENT_OTHER, <span class="number">0</span>, reasonUid);</div><div class="line"><span class="keyword">return</span> <span class="keyword">true</span>;</div></pre></td></tr></table></figure>
+</li>
+</ol>
+<p>setWakefulnessLocked()函数将mWakefulness赋值为wakefulness和mDirty |= DIRTY_WAKEFULNESS;这两个标志在后面更新电源状态时有重要作用，<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line">private void setWakefulnessLocked(int wakefulness, int reason) &#123;</div><div class="line">		if (mWakefulness != wakefulness) &#123;</div><div class="line">				mWakefulness = wakefulness;</div><div class="line">				mWakefulnessChanging = true;</div><div class="line">				mDirty |= DIRTY_WAKEFULNESS;</div><div class="line">				mNotifier.onWakefulnessChangeStarted(wakefulness, reason);</div><div class="line">		&#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<ol>
+<li><p>setWakefulnessLocked通过调用PhoneWindowManager的startedWakingUp函数，来通知到PhoneWindowManager屏幕开始启动；调用过程如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">Notifier.onWakefulnessChangeStarted(wakefulness, reason);</div><div class="line">	handleEarlyInteractiveChange()</div><div class="line">		PhoneWindowManager.startedWakingUp()</div></pre></td></tr></table></figure>
+</li>
+<li><p>调用mNotifier向系统中通知系统被唤醒；<br>更新用户活动，将mDirty |= DIRTY_USER_ACTIVITY置位;来重新计算亮屏时间。<br>在updatePowerStateLocked()中更新电源状态，updatePowerStateLocked为PowerManagerService的核心函数，后面会详细介绍，这里简单介绍在wakeup中的流程。<br>在updatePowerStateLocked()中的updateDisplayPowerStateLocked()函数中将mDisplayPowerRequest.policy设置成POLICY_BRIGHT；然后调用：<br>mDisplayReady = mDisplayManagerInternal.requestPowerState(mDisplayPowerRequest,mRequestWaitForNegativeProximity);<br>通过调用到DisplayManagerService中对屏幕状态作出相应的改变，通过去与WindowManagerService执行亮屏之前的屏幕绘制过程，与LightServcie交互来点亮屏幕背光灯。其调用过程和具体逻辑在亮屏流程文档中有详细分析。</p>
+</li>
+</ol>
+<h3 id="3-2-1-睡眠——goToSleep"><a href="#3-2-1-睡眠——goToSleep" class="headerlink" title="3.2.1 睡眠——goToSleep"></a>3.2.1 睡眠——goToSleep</h3><p>[comment]andoird n 上已经取消了@hide属性<br>PowerManager的gotoSleep()接口是@hide属性，因此对于上层应用是不开放的，设备强制进入睡眠状态。</p>
+<ul>
+<li>在处理一些灭屏按键事件时，会通过WMS来调用PowerManager的gotoSleep接口，</li>
+<li>在系统一段时间没有被操作时，系统将会自动调用gotoSleep函数，让其进入到睡眠模式；</li>
+</ul>
+<p>与wakeup唤醒一样，PowerManager的gotoSleep()在PowerManagerService中处理。<br>PMS中的gotoSleep()首先检查调用者是否拥有android.Manifest.permission.DEVICE_POWER权限。然后调用到goToSleepInternal()中处理。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">goToSleepInternal</span><span class="params">(<span class="keyword">long</span> eventTime, <span class="keyword">int</span> reason, <span class="keyword">int</span> flags, <span class="keyword">int</span> uid)</span> </span>&#123;</div><div class="line">		<span class="keyword">synchronized</span> (mLock) &#123;</div><div class="line">				<span class="keyword">if</span> (goToSleepNoUpdateLocked(eventTime, reason, flags, uid)) &#123;</div><div class="line">						updatePowerStateLocked();</div><div class="line">				&#125;</div><div class="line">		&#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>在goToSleepNoUpdateLocked()中完成发送了将要休眠的通知，然后修改了Wakefulness，将其置成WAKEFULNESS_DOZING，将mDirty |= DIRTY_WAKEFULNESS置位，更多的实际工作在updatePowerStateLocked()中完成。在updateDreamLocked中完成真正进入睡眠的过程；</p>
+<p>updatePowerStateLocked()调用过程大致如下：<br><img src="PowerManagerService_analysis/call.png" alt="image"></p>
+<p>在reallyGoToSleepNoUpdateLocked中将mWakefulness置成WAKEFULNESS_ASLEEP，在updateWakeLockSummaryLocked中有如下：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line">if (mWakefulness == WAKEFULNESS_ASLEEP</div><div class="line">	|| (mWakeLockSummary &amp; WAKE_LOCK_DOZE) != 0) &#123;</div><div class="line">		mWakeLockSummary &amp;= ~(WAKE_LOCK_SCREEN_BRIGHT | WAKE_LOCK_SCREEN_DIM</div><div class="line">					| WAKE_LOCK_BUTTON_BRIGHT);</div><div class="line">.</div><div class="line">.</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>将mWakeLockSummary列表中的wakelock锁所形成的集合变量mWakeLockSummary 中将WAKE_LOCK_SCREEN_BRIGHT，WAKE_LOCK_SCREEN_DIM，WAKE_LOCK_BUTTON_BRIGHT三种wakelock锁置为无效，再次调用updatePowerStateLocked更新电源状态时候，会在updateDisplayPowerStateLocked中做灭屏操作，其流程与wakeup唤醒系统亮屏操作流程大致一样。</p>
+<h3 id="3-2-3-用户活动——userActivity"><a href="#3-2-3-用户活动——userActivity" class="headerlink" title="3.2.3 用户活动——userActivity"></a>3.2.3 用户活动——userActivity</h3><p>userActivity()接口用于用户进程向PowerManagerService报告用户影响系统休眠的活动。例如， 用户点击屏幕时，系统会调用该方法来告诉PowerManagerService用户点击的时间，这样PowerManagerService将更新内部保存的时间值，从而推迟系统休眠的时间。</p>
+<p>userActivity()方法主要通过调用内部的userActivityInternal()方法来完成工作。</p>
+<p>在userActivityInternal()中并没有做任何操作，仅仅是将mLastUserActivityTime 更新为当前event的时间eventTime，mDirty |= DIRTY_USER_ACTIVITY;置位操作。</p>
+<p>具体操作仍然是在PowerManagerService中的核心函数updatePowerStateLocked()中完成；<br>在updateUserActivitySummaryLocked()中<br><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">final</span> <span class="keyword">int</span> sleepTimeout = getSleepTimeoutLocked();</div><div class="line"><span class="keyword">final</span> <span class="keyword">int</span> screenOffTimeout = getScreenOffTimeoutLocked(sleepTimeout);</div><div class="line"><span class="keyword">final</span> <span class="keyword">int</span> screenDimDuration = getScreenDimDurationLocked(screenOffTimeout);</div><div class="line">mUserActivitySummary = <span class="number">0</span>;</div><div class="line"><span class="keyword">if</span> (mLastUserActivityTime &gt;= mLastWakeTime) &#123;</div><div class="line">	nextTimeout = mLastUserActivityTime + screenOffTimeout - screenDimDuration;</div><div class="line">	<span class="keyword">if</span> (now &lt; nextTimeout)</div><div class="line">		mUserActivitySummary = USER_ACTIVITY_SCREEN_BRIGHT;</div><div class="line">	&#125; <span class="keyword">else</span> &#123;</div><div class="line">		nextTimeout = mLastUserActivityTime + screenOffTimeout;</div><div class="line">		<span class="keyword">if</span> (now &lt; nextTimeout)</div><div class="line">			mUserActivitySummary = USER_ACTIVITY_SCREEN_DIM;</div><div class="line">	&#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>重新计算睡眠超时时间，灭屏超时时间，暗屏超时时间，将mUserActivitySummary 置为0，通过计算上一次的用户事件时间与超时时间作对比，来判断将屏幕置为亮屏 (USER_ACTIVITY_SCREEN_BRIGHT)还是暗屏(USER_ACTIVITY_SCREEN_DIM)，前提是手机处于非睡眠状态。<br><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">if</span> (mUserActivitySummary != <span class="number">0</span> &amp;&amp; nextTimeout &gt;= <span class="number">0</span>) &#123;</div><div class="line">	Message msg = mHandler.obtainMessage(MSG_USER_ACTIVITY_TIMEOUT);</div><div class="line">	msg.setAsynchronous(<span class="keyword">true</span>);</div><div class="line">	mHandler.sendMessageAtTime(msg, nextTimeout);</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>如果时间还没到，则返回发送一个MSG_USER_ACTIVITY_TIMEOUT的定时消息，当处理时间到了，会在消息的处理方法handleUserActivityTimeout中重新调用updatePowerStateLocked()电源状态。再次调用时会根据当前的状态重新计算mUserActivitySummary 的值。</p>
+<h2 id="控制系统休眠"><a href="#控制系统休眠" class="headerlink" title="控制系统休眠"></a>控制系统休眠</h2><p>Android设备的休眠和唤醒主要基于WakeLock机制。WakeLock是一种上锁机制，只要有进程获得了WakeLock锁系统就不会进 入休眠。例如，在下载文件或播放音乐时，即使休眠时间到了，系统也不能进行休眠。WakeLock可以设置超时，超时后会自动解锁。<br>应用使用WakeLock功能前，需要先使用new WakeLock()接口创建一个WakeLock类对象，然后调用它的acquire()方法禁止系统休眠，应用完成工作后调用release()方法来恢复休眠机制，否则系统将无法休眠，直到耗光所有电量。<br>WakeLock类中实现acquire()和release()方法实际上是调用了PowerManagerService的acquireWakeLock()和releaseWakeLock()方法。<br>updatePowerStateLocked为PowerManagerService的核心函数；在执行完申请锁，释放锁，用户事件，强制唤醒/睡眠等操作都需要调用updatePowerStateLocked()来更新电源状态，</p>
+<h3 id="wakelock"><a href="#wakelock" class="headerlink" title="wakelock"></a>wakelock</h3><p>Wakelock是android系统上特有的电源管理机制，只要有应用拿着这个锁，系统就不能进入睡眠状态，在上层不同的应用程序可以持有多个不同的wakelock锁，但是反映到底层就只有三种：控制系统休眠PowerManagerService.WakeLock，控制屏幕显示的PowerManagerService.Display和控制电源状态改变通知的PowerManagerService.Broadcasts。<br>PowerManagerService有加锁和解锁两种状态，加锁有两种方式：</p>
+<ol>
+<li>永久的锁住，这样的锁除非显式的放开，否则是不会解锁的，所以这种锁用起来要非常的小心（默认）。</li>
+<li>超时锁，这种锁会在锁住后一段时间解锁。</li>
+</ol>
+<h3 id="相关接口"><a href="#相关接口" class="headerlink" title="相关接口"></a>相关接口</h3><ul>
+<li>newWakeLock()：创建wakelock锁，当外界创建wakelock之前需要创建PowerManager的服务对象，然后其创建wakelock锁：</li>
+<li>setReferenceCounted()设置计数锁和非计数锁；<ul>
+<li>wakelock分为计数锁和非计数锁两种：</li>
+<li>计数锁是应用调用一次acquire申请必定会对应一个release来释放；</li>
+<li>非计数锁应用调用多次acquire，调用一次release就可释放前面acquire的锁。</li>
+<li>在申请wakelock时默认申请的是计数锁。</li>
+</ul>
+</li>
+<li>isHeld()判断一个wakelock锁是否acquire申请了，但是没有release释放；</li>
+<li>acquire()和release()方法来申请和获取锁，acquire申请锁有两种：<ol>
+<li>acquire()：申请wakelock永久锁（默认），需要手动release</li>
+<li>acquire(long timeout) ：申请wakelock超时锁，timeout为设置的超时时间，超时自动release掉该wakelock。</li>
+</ol>
+</li>
+</ul>
+<p>Andoid的控制系统休眠是用wakelock机制，</p>
+<ol>
+<li>应用程序在使用wakelock前，必须在其manifest.xml文件中注册android.permission.WAKE_LOCK权限</li>
+<li>应用要使用wakelock，需先调用newWakeLock()创建wakelock，然</li>
+<li>后acquire()申请该锁，从而阻止系统休眠，</li>
+<li>在处理完事物之后要及时调用release()来释放wakelock，</li>
+<li>否则系统始终无法进入睡眠状态，直到电量耗光。</li>
+</ol>
+<h4 id="Wakelock类型"><a href="#Wakelock类型" class="headerlink" title="Wakelock类型"></a>Wakelock类型</h4><h4 id="申请锁——acquire"><a href="#申请锁——acquire" class="headerlink" title="申请锁——acquire"></a>申请锁——acquire</h4><p>应用创建锁之后，必须通过acquire申请锁才能持有wakelock锁，才能保证系统处于唤醒状态来使用电力资源。PowerManager和PowerManagerService中都有wakelock内部类，在PowerManagerService启动之时便将其注册到Binder服务端，其客户端代理调用由PowerManager来完成，故PowerManager中acquire申请锁具体操作实现在服务端PowerManagerService中的acquireWakeLock()。<br>申请锁流程图如下<br><img src="PowerManagerService_analysis/acquire.png" alt="image"><br>在acquireWakeLock中检查完权限后，调用到acquireWakeLockInternal()中<br><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">int</span> index = findWakeLockIndexLocked(lock);</div><div class="line"><span class="keyword">boolean</span> notifyAcquire;</div><div class="line"><span class="keyword">if</span> (index &gt;= <span class="number">0</span>) &#123;</div><div class="line">wakeLock = mWakeLocks.get(index);</div><div class="line"><span class="keyword">if</span> (!wakeLock.hasSameProperties(flags, tag, ws, uid, pid)) &#123;</div><div class="line">notifyWakeLockChangingLocked(wakeLock, flags, tag, packageName, uid, pid, ws, historyTag);</div><div class="line">wakeLock.updateProperties(flags, tag, packageName, ws, historyTag, uid, pid);</div><div class="line">&#125;</div><div class="line">notifyAcquire = <span class="keyword">false</span>;</div><div class="line">&#125; <span class="keyword">else</span> &#123;</div><div class="line">wakeLock = <span class="keyword">new</span> WakeLock(lock, flags, tag, packageName, ws, historyTag, uid, pid);</div></pre></td></tr></table></figure></p>
+<p>acquireWakeLockInternal()方法首先检查mWakeLock列表中是否已经存在有相同的wakelock，如果存在那么调用wakeLock.updateProperties()更新该wakelock的属性值，如果不存在，那么创建wakelock锁，然后更新电源状态：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">applyWakeLockFlagsOnAcquireLocked(wakeLock, uid);</div><div class="line">mDirty |= DIRTY_WAKE_LOCKS;</div><div class="line">updatePowerStateLocked();</div></pre></td></tr></table></figure>
+<p>在申请wakelock锁时候applyWakeLockFlagsOnAcquireLocked()检查申请锁是否带有ACQUIRE_CAUSES_WAKEUP标志，若带有该标志，则则会直接调用到wakeup调用线程上，执行唤醒操作，该标志在闹钟，蓝牙链接，来电以及短信窗口提醒等功能中有应用；mDirty记录申请锁的操作，最后调用到updatePowerStateLocked中更新电源状态。</p>
+<h4 id="释放锁——release"><a href="#释放锁——release" class="headerlink" title="释放锁——release"></a>释放锁——release</h4><p>在应用持有wakelock锁执行完相应的事物之后，要及时调用release()，来执行释放wakelock操作，否则会导致设备保持唤醒，迟迟进入不了睡眠状态，严重影响手机功耗。正常情况下，每个wakelock的acquire都应该对应一个release操作，release操作和acquire流程相似。<br>其流程如下图所示<br><img src="PowerManagerService_analysis/release.png" alt="image"></p>
+<p>接口是PowerManager的release()接口，具体实现在PowerManagerService的releaseWakeLock()，releaseWakeLock()检查完权限之后，到releaseWakeLockInternal()处理</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">int</span> index = findWakeLockIndexLocked(lock);</div><div class="line">WakeLock wakeLock = mWakeLocks.get(index);</div><div class="line">wakeLock.mLock.unlinkToDeath(wakeLock, <span class="number">0</span>);</div><div class="line">removeWakeLockLocked(wakeLock, index);</div><div class="line">&#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>获取要释放的wakelock在mWakeLocks列表中的下标值，然后调用removeWakeLockLocked()删除该wakelock，删除该wakelock的操作如下；<br><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">removeWakeLockLocked</span><span class="params">(WakeLock wakeLock, <span class="keyword">int</span> index)</span> </span>&#123;</div><div class="line">mWakeLocks.remove(index);</div><div class="line">notifyWakeLockReleasedLocked(wakeLock);</div><div class="line">applyWakeLockFlagsOnReleaseLocked(wakeLock);</div><div class="line">mDirty |= DIRTY_WAKE_LOCKS;</div><div class="line">updatePowerStateLocked();</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>首先在mWakeLocks列表中将该wakelock删除，然后通知系统该wakelock已经被删除，applyWakeLockFlagsOnReleaseLocked()中判断该wakelock是否有ON_AFTER_RELEASE标志，如果带有这个标志释放wakelock锁后系统不会立即进入黑屏状态，而是屏幕继续亮一小会再灭屏，在蓝牙连接，小区广播，来电等功能场景下有应用，由于wakelock被释放了，所以mDirty置为DIRTY_WAKE_LOCKS。再次调用到updatePowerStateLocked()更新电源状态。</p>
+<h2 id="Wakelock在流程反映"><a href="#Wakelock在流程反映" class="headerlink" title="Wakelock在流程反映"></a>Wakelock在流程反映</h2><p>先看一张wakelock工作的流程图</p>
+<p>SuspendBlocker是用来保持CPU唤醒的一种锁，前面讲到，上层应用可以申请许多不同的wakelock锁，所有的wakelock锁放到mWakelocks的一个列表中，在updateWakeLockSummaryLocked中将所有的wakelock通过置位的方法统计到一个集合变量mWakeLockSummary中，列表中有多个相同类型的wakelock，反映在相应的二进制位上是一样的，所以只需要一个wakelock就可以保证CPU唤醒，<br>我们回到PowerManagerService的构造函数，</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">mWakeLockSuspendBlocker=createSuspendBlockerLocked(<span class="string">"PowerManagerService.WakeLocks"</span>);</div><div class="line">mDisplaySuspendBlocker=createSuspendBlockerLocked(<span class="string">"PowerManagerService.Display"</span>);</div></pre></td></tr></table></figure>
+<p>里面创建了两个变量mWakeLockSuspendBlocker和mDisplaySuspendBlocker,在PowerManagerService启动时调用SystemReady时有：<br><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">mNotifier = <span class="keyword">new</span> Notifier(Looper.getMainLooper(), mContext, mBatteryStats,</div><div class="line">mAppOps, createSuspendBlockerLocked(<span class="string">"PowerManagerService.Broadcasts"</span>),</div><div class="line">mPolicy);</div><div class="line">mWirelessChargerDetector = <span class="keyword">new</span> WirelessChargerDetector(sensorManager, createSuspendBlockerLocked(<span class="string">"PowerManagerService.WirelessChargerDetector"</span>), mHandler);</div></pre></td></tr></table></figure></p>
+<p>创建两个SuspendBlocker对象mNotifier 和mWirelessChargerDetector ，mNotifier 是在电池屏幕亮度发生迅速提升时（如暗屏触摸），应用点亮屏幕时或者使用无线充电时，申请PowerManagerService.Broadcasts的SuspendBlocker锁。当检测到用无线充电时，会申请PowerManagerService.WirelessChargerDetector标志的SuspendBlocker锁</p>
+<p>SuspendBlocker是一个抽象类。其创建的对象是其实现类SuspendBlockerImpl对象，SuspendBlockerImpl类中维护了一个计数器mReferenceCount，</p>
+<ul>
+<li>调用acquire时候，计数器加1，当计数器值为1时，调用到底层的nativeAcquireSuspendBlocker方法，申请wakelock；</li>
+<li>调用release时，计数器减1，当计数器为0时候调用底层的nativeReleaseSuspendBlocker方法，释放wakelock；这两个方法如下</li>
+</ul>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">void</span> <span class="title">nativeAcquireSuspendBlocker</span><span class="params">(JNIEnv *env, jclass <span class="comment">/* clazz */</span>, jstring nameStr)</span> </span>&#123;</div><div class="line"><span class="function">ScopedUtfChars <span class="title">name</span><span class="params">(env, nameStr)</span></span>;</div><div class="line">acquire_wake_lock(PARTIAL_WAKE_LOCK, name.c_str());</div><div class="line">&#125;</div><div class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">void</span> <span class="title">nativeReleaseSuspendBlocker</span><span class="params">(JNIEnv *env, jclass <span class="comment">/* clazz */</span>, jstring nameStr)</span> </span>&#123;</div><div class="line"><span class="function">ScopedUtfChars <span class="title">name</span><span class="params">(env, nameStr)</span></span>;</div><div class="line">release_wake_lock(name.c_str());</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>其 acquire_wake_lock(release_wake_lock)直接调用到HAL层的power.c向系统文件节点/sys/power/wake_lock(/sys/power/unwake_lock)中写数据，这里写数据就是前面构造函数和Systemready中创建变量时的参数”PowerManagerService.WakeLocks”，”PowerManagerService.Display”等参数</p>
+<p><strong>[commend]此说法应该不对，kernel中没有看到PowerManagerService.Display和PowerManagerService.WakeLocks<br>分别处理的逻辑。</strong></p>
+<p>因此，Android实现防止系统休眠的功能是通过向设备文件“sys/power/wake_lock”中写数据来完成的，如果写的是“PowerManagerService.WakeLocks”，系统将不能进入休眠状态，但是屏幕会关闭；如果写的是“PowerManagerService.Display”，则屏幕不会关闭。如果系统要恢复休眠，再向设备文件“sys/power/wake_unlock”中写入同样的字符串就行了。</p>
+<h2 id="电源管理核心——updatePowerStateLocked"><a href="#电源管理核心——updatePowerStateLocked" class="headerlink" title="电源管理核心——updatePowerStateLocked"></a>电源管理核心——updatePowerStateLocked</h2><p>updatePowerSateLocked()方法为PowerManagerService之核心，前面分析了接口调用都是更新成员变量值，最后都是需要调用到updatePowerSateLocked()来更新电源状态。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">updatePowerStateLocked</span><span class="params">()</span> </span>&#123;</div><div class="line">    <span class="keyword">if</span> (!mSystemReady || mDirty == <span class="number">0</span>) &#123;</div><div class="line">        <span class="keyword">return</span>;</div><div class="line">    &#125;</div><div class="line">    <span class="keyword">if</span> (!Thread.holdsLock(mLock)) &#123;</div><div class="line">        Slog.wtf(TAG, <span class="string">"Power manager lock was not held when calling updatePowerStateLocked"</span>);</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    Trace.traceBegin(Trace.TRACE_TAG_POWER, <span class="string">"updatePowerState"</span>);</div><div class="line">    <span class="keyword">try</span> &#123;</div><div class="line">        <span class="comment">// Phase 0: Basic state updates.</span></div><div class="line">        updateIsPoweredLocked(mDirty);</div><div class="line">        updateStayOnLocked(mDirty);</div><div class="line">        updateScreenBrightnessBoostLocked(mDirty);</div><div class="line"></div><div class="line">        <span class="comment">// Phase 1: Update wakefulness.</span></div><div class="line">        <span class="comment">// Loop because the wake lock and user activity computations are influenced</span></div><div class="line">        <span class="comment">// by changes in wakefulness.</span></div><div class="line">        <span class="keyword">final</span> <span class="keyword">long</span> now = SystemClock.uptimeMillis();</div><div class="line">        <span class="keyword">int</span> dirtyPhase2 = <span class="number">0</span>;</div><div class="line">        <span class="keyword">for</span> (;;) &#123;</div><div class="line">            <span class="keyword">int</span> dirtyPhase1 = mDirty;</div><div class="line">            dirtyPhase2 |= dirtyPhase1;</div><div class="line">            mDirty = <span class="number">0</span>;</div><div class="line"></div><div class="line">            updateWakeLockSummaryLocked(dirtyPhase1);</div><div class="line">            updateUserActivitySummaryLocked(now, dirtyPhase1);</div><div class="line">            <span class="keyword">if</span> (!updateWakefulnessLocked(dirtyPhase1)) &#123;</div><div class="line">                <span class="keyword">break</span>;</div><div class="line">            &#125;</div><div class="line">        &#125;</div><div class="line"></div><div class="line">        <span class="comment">// Phase 2: Update display power state.</span></div><div class="line">        <span class="keyword">boolean</span> displayBecameReady = updateDisplayPowerStateLocked(dirtyPhase2);</div><div class="line"></div><div class="line">        <span class="comment">// Phase 3: Update dream state (depends on display ready signal).</span></div><div class="line">        updateDreamLocked(dirtyPhase2, displayBecameReady);</div><div class="line"></div><div class="line">        <span class="comment">// Phase 4: Send notifications, if needed.</span></div><div class="line">        finishWakefulnessChangeIfNeededLocked();</div><div class="line"></div><div class="line">        <span class="comment">// Phase 5: Update suspend blocker.</span></div><div class="line">        <span class="comment">// Because we might release the last suspend blocker here, we need to make sure</span></div><div class="line">        <span class="comment">// we finished everything else first!</span></div><div class="line">        updateSuspendBlockerLocked();</div><div class="line">    &#125; <span class="keyword">finally</span> &#123;</div><div class="line">        Trace.traceEnd(Trace.TRACE_TAG_POWER);</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>updatePowerStateLocked()方法并不长，但是其涉及调用的方法较为复杂，还是不容以理解，下面作详细分析：<br>电源状态更新，最重要的标志变量为mDirty，当与电源相关的状态改变，都会通过置位的方法反映在mDirty集合变量了，比如充电状态，屏幕亮度，电源设置，唤醒状态等发生改变都会在mDirty中反映出来</p>
+<p>1 updateIsPoweredLocked():该方法主要是通过调用BatteryService更新电池状态，包括电池充电，电量等级等状态。<br><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">mIsPowered=mBatteryManagerInternal.isPowered(BatteryManager.BATTERY_PLUGGED_ANY);</div><div class="line">mPlugType = mBatteryManagerInternal.getPlugType();</div><div class="line">mBatteryLevel = mBatteryManagerInternal.getBatteryLevel();</div><div class="line">mBatteryLevelLow = mBatteryManagerInternal.getBatteryLevelLow();</div></pre></td></tr></table></figure></p>
+<p>mIsPowered表示是否在充电，mPlugType 表示充电类型，mBatteryLevel 表示当前电量等级，mBatteryLevelLow 表示是否为低电水平；<br>2 updateStayOnLocked()来更新变量mStayOn的值，如果mStayOn如果为true，则屏幕长亮，在Setting中可以设置充电时候屏幕长亮，如果Setting中设置了该选项，updateIsPoweredLocked检查到正在充电，会将mStayOn置为true。<br>3 接下来就是一个无限循环，但是这个循环最多执行两次便退出了，这一点将在后面详细分析，循环中最先调用updateWakeLockSummaryLocked，来将系统中所有的wakelock锁更新到一个集合变量mWakeLockSummary中，也就是不管系统中创建了多少个wakelock，一个便足以阻止系统进入睡眠状态，因此这里将所有的wakelock总结后通过置位的方法保存到一个变量中，应用创建wakelock时会指定wakelock的类型，不同的wakelock类型置于不同的位。<br>4 循环调用的第二个方法是updateUserActivitySummaryLocked，在方法中根据系统最后一次调用userActivity()方法的时间计算现在是否可以将屏幕状态的变量mUserActivitySummary置成USER_ACTIVITY_SCREEN_BRIGHT(亮屏)还是USER_ACTIVITY_SCREEN_DIM(暗屏)等，这在上面已经分析过了，这里就不多赘述了。<br>5 循环中调用的第三个方法是updateWakefulnessLocked()，这个方法是循环结束的关键，如果它的返回值为true，则表示wakefulness的状态发生改变了，降继续循环重新调用前面两个方法更新userActivity和Wakelock集合变量。如果能第二次调用updateWakefulnessLocked()一定会返回false，继而跳出循环，方法实现为:<br><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">boolean</span> <span class="title">updateWakefulnessLocked</span><span class="params">(<span class="keyword">int</span> dirty)</span> </span>&#123;</div><div class="line">    <span class="keyword">boolean</span> changed = <span class="keyword">false</span>;</div><div class="line">    <span class="keyword">if</span> ((dirty &amp; (DIRTY_WAKE_LOCKS | DIRTY_USER_ACTIVITY | DIRTY_BOOT_COMPLETED</div><div class="line">            | DIRTY_WAKEFULNESS | DIRTY_STAY_ON | DIRTY_PROXIMITY_POSITIVE</div><div class="line">            | DIRTY_DOCK_STATE)) != <span class="number">0</span>) &#123;</div><div class="line">        <span class="keyword">if</span> (mWakefulness == WAKEFULNESS_AWAKE &amp;&amp; isItBedTimeYetLocked()) &#123;</div><div class="line">            <span class="keyword">if</span> (DEBUG_SPEW) &#123;</div><div class="line">                Slog.d(TAG, <span class="string">"updateWakefulnessLocked: Bed time..."</span>);</div><div class="line">            &#125;</div><div class="line">            <span class="keyword">final</span> <span class="keyword">long</span> time = SystemClock.uptimeMillis();</div><div class="line">            <span class="keyword">if</span> (shouldNapAtBedTimeLocked()) &#123;</div><div class="line">                changed = napNoUpdateLocked(time, Process.SYSTEM_UID);</div><div class="line">            &#125; <span class="keyword">else</span> &#123;</div><div class="line">                changed = goToSleepNoUpdateLocked(time,</div><div class="line">                        PowerManager.GO_TO_SLEEP_REASON_TIMEOUT, <span class="number">0</span>, Process.SYSTEM_UID);</div><div class="line">            &#125;</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line">    <span class="keyword">return</span> changed;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>第一个if非常容易满足，第二个条件要求mWakefulness为WAKEFULNESS_AWAKE，且isItBedTimeYetLocked()为true，此函数官方解释为当系统马上要进入睡眠状态时会返回true，也就是当系统一直处于活跃状态，则其返回false。所以，updateWakefulnessLocked()方法返回值为false，那么这个死循环只用执行一次就跳出了。</p>
+<p>这里假定系统一段时间未被操作，即将接下来就要调用进入睡眠状态，则isItBedTimeYetLocked()函数返回true，接下来就该调用shouldNapAtBedTimeLocked()方法了，该方法检查又没有设置睡眠之前启动动态屏保或者插在座充上启动屏保，如果设置了，调用napNoUpdateLocked()，没有设置则调用gotoSleepNoUpdateLocked()。<br>napNoUpdateLocked方法主要代码如下：<br><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">if</span> (eventTime mLastWakeTime || mWakefulness != WAKEFULNESS_AWAKE</div><div class="line">|| !mBootCompleted || !mSystemReady) &#123;</div><div class="line"><span class="keyword">return</span> <span class="keyword">false</span>;</div><div class="line">&#125;</div><div class="line"><span class="keyword">try</span> &#123;</div><div class="line">mSandmanSummoned = <span class="keyword">true</span>;</div><div class="line">setWakefulnessLocked(WAKEFULNESS_DREAMING, <span class="number">0</span>);</div><div class="line">&#125; <span class="keyword">finally</span> &#123;</div><div class="line">Trace.traceEnd(Trace.TRACE_TAG_POWER);</div><div class="line">&#125;</div><div class="line"><span class="keyword">return</span> <span class="keyword">true</span>;</div></pre></td></tr></table></figure></p>
+<p>如果if语句中有一项成立则返回false，则跳出死循环，当时如果第一次调用该方法，正常情况下当为false，如果第二次调用到此肯定会返回false，因为第二次调用时mWakefulness 为，WAKEFULNESS_DREAMING。而gotoSleepNoUpdateLocked前面已作分析，这里就不多讲了。</p>
+<p>6 跳出循环则调用到updateDisplayPowerStateLocked()更新屏幕显示，当前面如果申请了亮屏锁和更新userActivity时，mUserActivitySummary带有USER_ACTIVITY_SCREEN_BRIGHT标志，则会将mDisplayPowerRequest.policy置为POLICY_BRIGHT，这个标志在DisplayPowerController中会将屏幕从灭屏状态下唤醒。<br>7 接下来调用updateDreamLocked(),更新屏保模式，具体处理在handleSandman()函数中，该函数是当系统进入/退出屏保状态或者Dozing下状态调用，下面详细分析该函数代码：<br><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">synchronized</span> (mLock) &#123;</div><div class="line">	mSandmanScheduled = <span class="keyword">false</span>;</div><div class="line">	wakefulness = mWakefulness;</div><div class="line">	<span class="keyword">if</span> (mSandmanSummoned &amp;&amp; mDisplayReady) &#123;</div><div class="line">		startDreaming = canDreamLocked() || canDozeLocked();</div><div class="line">		mSandmanSummoned = <span class="keyword">false</span>;</div><div class="line">	&#125; <span class="keyword">else</span> &#123;</div><div class="line">		startDreaming = <span class="keyword">false</span>;</div><div class="line">	&#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>这里主要更新变量startDreaming，当前状态如果可以进入屏保或者Dozing状态，则置为true，否则置为false。，如果设置了屏保，则灭屏之后会进入一段时间屏保，然后灭屏；如果没有设置屏保则默认进入dozing（打盹）状态。<br><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">final</span> <span class="keyword">boolean</span> isDreaming;</div><div class="line"><span class="keyword">if</span> (mDreamManager != <span class="keyword">null</span>) &#123;</div><div class="line">	mDreamManager.stopDream(<span class="keyword">false</span> <span class="comment">/*immediate*/</span>);</div><div class="line">	mDreamManager.startDream(wakefulness == WAKEFULNESS_DOZING);</div><div class="line">&#125;</div><div class="line">	isDreaming = mDreamManager.isDreaming();</div><div class="line">&#125; <span class="keyword">else</span> &#123;</div><div class="line">	isDreaming = <span class="keyword">false</span>;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>此处判断屏保服务是否启动了，而在屏保服务实在系统启动时在StartOtherService中随系统启动，在次重启屏保服务<br><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">if</span> (isItBedTimeYetLocked()) &#123;</div><div class="line">	goToSleepNoUpdateLocked(SystemClock.uptimeMillis(),</div><div class="line">	PowerManager.GO_TO_SLEEP_REASON_TIMEOUT, <span class="number">0</span>, Process.SYSTEM_UID);</div><div class="line">	updatePowerStateLocked();</div><div class="line">&#125; <span class="keyword">else</span> &#123;</div><div class="line">	wakeUpNoUpdateLocked(SystemClock.uptimeMillis(), <span class="string">"android.server.power:DREAM"</span>,</div><div class="line">						Process.SYSTEM_UID, mContext.getOpPackageName(), Process.SYSTEM_UID);</div><div class="line">	updatePowerStateLocked();</div><div class="line">&#125; <span class="keyword">else</span> <span class="keyword">if</span> (wakefulness == WAKEFULNESS_DOZING) &#123;</div><div class="line">	<span class="keyword">if</span> (isDreaming) &#123;</div><div class="line">		<span class="keyword">return</span>; <span class="comment">// continue dozing</span></div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>如果屏保结束，判断是进入唤醒状态还是进入睡眠状态，然后更新电源状态。若是还为到时，且wakefulness为WAKEFULNESS_DOZING则返回，继续处于dozing状态。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">reallyGoToSleepNoUpdateLocked(SystemClock.uptimeMillis(), Process.SYSTEM_UID);</div><div class="line">updatePowerStateLocked();</div></pre></td></tr></table></figure>
+<p>最后时间及到，真正进入睡眠状态调用reallyGoToSleepNoUpdateLocked，将mWakefulness置为WAKEFULNESS_ASLEEP，再次更新电源状态时将wakelock锁尽数释放，屏幕完全灭屏，进入睡眠状态。</p>
+<p>8 finishWakefulnessChangeIfNeededLocked()方法未作实际操作，仅仅通知系统mWakefulness改变更新已经完成。</p>
+<p>9 最后一个函数updateSuspendBlockerLocked();由于系统中可能需要释放最后一个维持CPU唤醒或者维持屏幕亮灭的Blocker，所以必须将所有事物处理完成，再执行该操作。由于该函数是由PowerManagerService调用到底层的唯一入口，所以十分重要：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">updateSuspendBlockerLocked</span><span class="params">()</span> </span>&#123;</div><div class="line"><span class="keyword">final</span> <span class="keyword">boolean</span> needWakeLockSuspendBlocker = ((mWakeLockSummary &amp; WAKE_LOCK_CPU) != <span class="number">0</span>);</div><div class="line"><span class="keyword">final</span> <span class="keyword">boolean</span> needDisplaySuspendBlocker = needDisplaySuspendBlockerLocked();</div><div class="line"><span class="keyword">final</span> <span class="keyword">boolean</span> autoSuspend = !needDisplaySuspendBlocker;</div><div class="line"><span class="keyword">final</span> <span class="keyword">boolean</span> interactive = mDisplayPowerRequest.isBrightOrDim();</div></pre></td></tr></table></figure>
+<p>needWakeLockSuspendBlocker变量判断wakelock是否带有WAKE_LOCK_CPU标志来决定是否为需要保持CPU唤醒，其中能维持CPU唤醒的wakelock类型有：PARTIAL_WAKE_LOCK，FULL_WAKE_LOCK，SCREEN_BRIGHT_WAKE_LOCK，SCREEN_DIM_WAKE_LOCK，DRAW_WAKE_LOCK。</p>
+<p>needDisplaySuspendBlocker 则是表示是否维持屏幕亮灭的变量，true表示维持屏幕亮，false表示可以关闭屏幕。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">if</span> (needWakeLockSuspendBlocker &amp;&amp; !mHoldingWakeLockSuspendBlocker) &#123;</div><div class="line">	mWakeLockSuspendBlocker.acquire();</div><div class="line">	mHoldingWakeLockSuspendBlocker = <span class="keyword">true</span>;</div><div class="line">&#125;</div><div class="line"><span class="keyword">if</span> (needDisplaySuspendBlocker &amp;&amp; !mHoldingDisplaySuspendBlocker) &#123;</div><div class="line">	mDisplaySuspendBlocker.acquire();</div><div class="line">	mHoldingDisplaySuspendBlocker = <span class="keyword">true</span>;</div><div class="line">&#125;</div><div class="line">........</div><div class="line"><span class="keyword">if</span> (!needWakeLockSuspendBlocker &amp;&amp; mHoldingWakeLockSuspendBlocker) &#123;</div><div class="line">	mWakeLockSuspendBlocker.release();</div><div class="line">	mHoldingWakeLockSuspendBlocker = <span class="keyword">false</span>;</div><div class="line">&#125;</div><div class="line"><span class="keyword">if</span> (!needDisplaySuspendBlocker &amp;&amp; mHoldingDisplaySuspendBlocker) &#123;</div><div class="line">	mDisplaySuspendBlocker.release();</div><div class="line">	mHoldingDisplaySuspendBlocker = <span class="keyword">false</span>;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>上面两段代码是向下申请PowerManagerService.WakeLocks和PowerManagerService.Display类型的wakelock锁的入口，mHoldingWakeLockSuspendBlocker表示当前是否持有cpu唤醒锁，如果持有则不必向下继续申请锁，如果维持有，且需要维持CPU唤醒则需要，申请CPU唤醒锁。（Display逻辑与其相似，就不做分析）调用到 SuspendBlockerImpl的acquire()函数中</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">acquire</span><span class="params">()</span> </span>&#123;</div><div class="line"><span class="keyword">synchronized</span> (<span class="keyword">this</span>) &#123;</div><div class="line">mReferenceCount += <span class="number">1</span>;</div><div class="line"><span class="keyword">if</span> (mReferenceCount == <span class="number">1</span>) &#123;</div><div class="line"><span class="keyword">if</span> (DEBUG_SPEW) &#123;</div><div class="line">Slog.d(TAG, <span class="string">"Acquiring suspend blocker \""</span> + mName + <span class="string">"\"."</span>);</div><div class="line">&#125;</div><div class="line">Trace.asyncTraceBegin(Trace.TRACE_TAG_POWER, mTraceName, <span class="number">0</span>);</div><div class="line">nativeAcquireSuspendBlocker(mName);</div><div class="line">&#125;</div><div class="line">&#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>前面已经说过SuspendBlockerImpl维持了一个计数标志mReferenceCount,当为1的时候申请锁，为0时释放锁。</p>
+<p>nativeAcquireSuspendBlocker()函数通过JNI调用到native层的com_android_server_power_PowerManagerService.cpp文件的nativeAcquireSuspendBlocker函数，而后的详细流程在前面wakelock已经讲的很清楚了 。</p>
+<p>至此电源管理核心函数updatePowerStateLocked()基本分析完成。<br>下图为概述电源管理核心函数处理流程及作用</p>
+<p><img src="PowerManagerService_analysis/updatePowerStateLocked.png" alt="image"></p>
+<h1 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h1><p>Android的电源管理提出wakelock的是一套全新的机制，跟我们C++里使用的智能指针（Smart pointer），借用智能指针的思想来设计电源的使用和分配。Smart Pointer都是引用，申请引用则它的引用计数会自动加1，取消引用则引用计数减1，使用了智能指针的对象，当它的引用计数为0时，则该对象会被回收掉。\n同样，我们的wake_lock也保持使用计数，只不过这种“智能指针”的所使用的资源不再是内存，而是电量。应用程序会通过特定的WakeLock去访问硬件，然后硬件会根据引用计数是否为0来决定是不是需要关闭这一硬件的供电。</p>
+<p>电源管理于Framework层恰似为一个策略控制器，来掌控不同状态下的电源状态改变和更新，PowerManager作为一个重要服务在开机启动时便启动并注册到系统内，当上层应用程序需要使用该服务只需调用PowerManager开放接口即可控制系统某些电源状态的改变，而PowerManagerServcie提供服务端处理逻辑，在交互中做主要电源控制工作，其中与之交互的模块最频繁的为Display，Window，Light，和Battery等，其交互之复杂，联系之紧密实非一言以蔽之。</p>
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/android-m/" rel="tag"># android_m</a>
+          
+            <a href="/tags/android-n/" rel="tag"># android_n</a>
+          
+            <a href="/tags/Power/" rel="tag"># Power</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2017/07/16/hello-world/" rel="next" title="Hello World">
+                <i class="fa fa-chevron-left"></i> Hello World
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2017/07/18/android/power/PowerManagerService/wakelock_table/" rel="prev" title="">
+                 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      <div id="uyan_frame"></div>
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            Table of Contents
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            Overview
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/images/avatar.gif"
+               alt="飞鸟" />
+          <p class="site-author-name" itemprop="name">飞鸟</p>
+           
+              <p class="site-description motion-element" itemprop="description">copy & edit & think</p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives/">
+                <span class="site-state-item-count">3</span>
+                <span class="site-state-item-name">posts</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-categories">
+              <a href="/categories/index.html">
+                <span class="site-state-item-count">1</span>
+                <span class="site-state-item-name">categories</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              <a href="/tags/index.html">
+                <span class="site-state-item-count">3</span>
+                <span class="site-state-item-name">tags</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/wu0655" target="_blank" title="GitHub">
+                  
+                    <i class="fa fa-fw fa-github"></i>
+                  
+                  GitHub
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="http://wu0655.360doc.com" target="_blank" title="360doc">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  360doc
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#1-概述"><span class="nav-number">1.</span> <span class="nav-text">1 概述</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#2-电源管理架构"><span class="nav-number">2.</span> <span class="nav-text">2 电源管理架构</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#3-电源管理服务——PowerManagerService"><span class="nav-number">3.</span> <span class="nav-text">3 电源管理服务——PowerManagerService</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#3-1-init过程"><span class="nav-number">3.1.</span> <span class="nav-text">3.1 init过程</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#3-2-相关接口"><span class="nav-number">3.2.</span> <span class="nav-text">3.2 相关接口</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#3-2-1-唤醒——wakeup"><span class="nav-number">3.2.1.</span> <span class="nav-text">3.2.1 唤醒——wakeup</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-2-1-睡眠——goToSleep"><span class="nav-number">3.2.2.</span> <span class="nav-text">3.2.1 睡眠——goToSleep</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-2-3-用户活动——userActivity"><span class="nav-number">3.2.3.</span> <span class="nav-text">3.2.3 用户活动——userActivity</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#控制系统休眠"><span class="nav-number">3.3.</span> <span class="nav-text">控制系统休眠</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#wakelock"><span class="nav-number">3.3.1.</span> <span class="nav-text">wakelock</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#相关接口"><span class="nav-number">3.3.2.</span> <span class="nav-text">相关接口</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Wakelock类型"><span class="nav-number">3.3.2.1.</span> <span class="nav-text">Wakelock类型</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#申请锁——acquire"><span class="nav-number">3.3.2.2.</span> <span class="nav-text">申请锁——acquire</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#释放锁——release"><span class="nav-number">3.3.2.3.</span> <span class="nav-text">释放锁——release</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Wakelock在流程反映"><span class="nav-number">3.4.</span> <span class="nav-text">Wakelock在流程反映</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#电源管理核心——updatePowerStateLocked"><span class="nav-number">3.5.</span> <span class="nav-text">电源管理核心——updatePowerStateLocked</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#总结"><span class="nav-number">4.</span> <span class="nav-text">总结</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2017</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">飞鸟</span>
+</div>
+
+
+<div class="powered-by">
+  Powered by <a class="theme-link" href="https://hexo.io">Hexo</a>
+</div>
+
+<div class="theme-info">
+  Theme -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Mist
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.1"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.1"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.1"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.1"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.1"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+    
+
+    
+      <!-- UY BEGIN -->
+      <script type="text/javascript" src="http://v2.uyan.cc/code/uyan.js?uid=2139101"></script>
+      <!-- UY END -->
+    
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+  
+
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('1');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'manual') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>
