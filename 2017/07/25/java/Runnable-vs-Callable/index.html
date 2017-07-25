@@ -77,7 +77,7 @@
 <link href="/css/main.css?v=5.1.1" rel="stylesheet" type="text/css" />
 
 
-  <meta name="keywords" content="Hexo, NexT" />
+  <meta name="keywords" content="reproductiond,concurrent," />
 
 
 
@@ -93,15 +93,17 @@
 
 
 
-<meta name="description" content="copy &amp; edit &amp; think">
-<meta property="og:type" content="website">
-<meta property="og:title" content="飞鸟的笔记">
-<meta property="og:url" content="https://wu0655.github.io/tags/android-n/index.html">
+<meta name="description" content="本文基于下文的修改：说说Runnable与Callable Callable接口：123public interface Callable &amp;#123;  V call() throws Exception;&amp;#125; Runnable接口：123public interface Runnable &amp;#123;    public abstract void run();&amp;#125;  相同点：">
+<meta name="keywords" content="reproductiond,concurrent">
+<meta property="og:type" content="article">
+<meta property="og:title" content="说说Runnable与Callable(转载)">
+<meta property="og:url" content="https://wu0655.github.io/2017/07/25/java/Runnable-vs-Callable/index.html">
 <meta property="og:site_name" content="飞鸟的笔记">
-<meta property="og:description" content="copy &amp; edit &amp; think">
+<meta property="og:description" content="本文基于下文的修改：说说Runnable与Callable Callable接口：123public interface Callable &amp;#123;  V call() throws Exception;&amp;#125; Runnable接口：123public interface Runnable &amp;#123;    public abstract void run();&amp;#125;  相同点：">
+<meta property="og:updated_time" content="2017-07-25T02:20:00.139Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="飞鸟的笔记">
-<meta name="twitter:description" content="copy &amp; edit &amp; think">
+<meta name="twitter:title" content="说说Runnable与Callable(转载)">
+<meta name="twitter:description" content="本文基于下文的修改：说说Runnable与Callable Callable接口：123public interface Callable &amp;#123;  V call() throws Exception;&amp;#125; Runnable接口：123public interface Runnable &amp;#123;    public abstract void run();&amp;#125;  相同点：">
 
 
 
@@ -129,13 +131,13 @@
 
 
 
-  <link rel="canonical" href="https://wu0655.github.io/tags/android-n/"/>
+  <link rel="canonical" href="https://wu0655.github.io/2017/07/25/java/Runnable-vs-Callable/"/>
 
 
 
 
 
-  <title>Tag: android_n | 飞鸟的笔记</title>
+  <title>说说Runnable与Callable(转载) | 飞鸟的笔记</title>
   
 
 
@@ -160,7 +162,7 @@
     
   
 
-  <div class="container sidebar-position-left  ">
+  <div class="container sidebar-position-left page-post-detail ">
     <div class="headband"></div>
 
     <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
@@ -298,44 +300,197 @@
           <div id="content" class="content">
             
 
-  <div id="posts" class="posts-collapse">
-    <div class="collection-title">
-      <h1>android_n<small>Tag</small>
-      </h1>
-    </div>
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+    <link itemprop="mainEntityOfPage" href="https://wu0655.github.io/2017/07/25/java/Runnable-vs-Callable/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="飞鸟">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="飞鸟的笔记">
+    </span>
 
     
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">说说Runnable与Callable(转载)</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2017-07-25T10:00:52+08:00">
+                2017-07-25
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">In</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/java/" itemprop="url" rel="index">
+                    <span itemprop="name">java</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    <div class="post-body" itemprop="articleBody">
+
+      
       
 
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-    <header class="post-header">
+      
+        <p>本文基于下文的修改：<br><a href="http://www.cnblogs.com/frinder6/p/5507082.html" target="_blank" rel="external">说说Runnable与Callable</a></p>
+<p>Callable接口：<br><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">Callable</span> </span>&#123;</div><div class="line">  <span class="function">V <span class="title">call</span><span class="params">()</span> <span class="keyword">throws</span> Exception</span>;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>Runnable接口：<br><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">Runnable</span> </span>&#123;</div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">abstract</span> <span class="keyword">void</span> <span class="title">run</span><span class="params">()</span></span>;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<ul>
+<li>相同点：<ol>
+<li>两者都是接口；（废话）</li>
+<li>两者都可用来编写多线程程序；</li>
+<li>两者都需要调用Thread.start()启动线程；</li>
+</ol>
+</li>
+<li>不同点：<ol>
+<li>两者最大的不同点是：实现Callable接口的任务线程能返回执行结果；而实现Runnable接口的任务线程不能返回结果；</li>
+<li>Callable接口的call()方法允许抛出异常；而Runnable接口的run()方法的异常只能在内部消化，不能继续上抛；</li>
+</ol>
+</li>
+<li>注意点：<ul>
+<li>Callable接口支持返回执行结果，此时需要调用FutureTask.get()方法实现，此方法会阻塞主线程直到获取‘将来’结果；</li>
+<li>当不调用此方法时，主线程不会阻塞！</li>
+</ul>
+</li>
+</ul>
+<p>Callable工作的Demo：<br><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">package</span> com.callable.runnable;</div><div class="line"></div><div class="line"><span class="keyword">import</span> java.util.concurrent.Callable;</div><div class="line"><span class="keyword">import</span> java.util.concurrent.ExecutionException;</div><div class="line"><span class="keyword">import</span> java.util.concurrent.FutureTask;</div><div class="line"></div><div class="line"><span class="comment">/**</span></div><div class="line"> * Created on 2016/5/18.</div><div class="line"> */</div><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">CallableImpl</span> <span class="keyword">implements</span> <span class="title">Callable</span>&lt;<span class="title">String</span>&gt; </span>&#123;</div><div class="line"></div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="title">CallableImpl</span><span class="params">(String acceptStr)</span> </span>&#123;</div><div class="line">        <span class="keyword">this</span>.acceptStr = acceptStr;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">private</span> String acceptStr;</div><div class="line"></div><div class="line">    <span class="meta">@Override</span></div><div class="line">    <span class="function"><span class="keyword">public</span> String <span class="title">call</span><span class="params">()</span> <span class="keyword">throws</span> Exception </span>&#123;</div><div class="line">        <span class="comment">// 任务阻塞 1 秒</span></div><div class="line">        Thread.sleep(<span class="number">1000</span>);</div><div class="line">        <span class="keyword">return</span> <span class="keyword">this</span>.acceptStr + <span class="string">" append some chars and return it!"</span>;</div><div class="line">    &#125;</div><div class="line"></div><div class="line"></div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> ExecutionException, InterruptedException </span>&#123;</div><div class="line">        Callable&lt;String&gt; callable = <span class="keyword">new</span> CallableImpl(<span class="string">"my callable test!"</span>);</div><div class="line">        FutureTask&lt;String&gt; task = <span class="keyword">new</span> FutureTask&lt;&gt;(callable);</div><div class="line">        <span class="keyword">long</span> beginTime = System.currentTimeMillis();</div><div class="line">        <span class="comment">// 创建线程</span></div><div class="line">        <span class="keyword">new</span> Thread(task).start();</div><div class="line">        <span class="comment">// 调用get()阻塞主线程，反之，线程不会阻塞</span></div><div class="line">        String result = task.get();</div><div class="line">        <span class="keyword">long</span> endTime = System.currentTimeMillis();</div><div class="line">        System.out.println(<span class="string">"hello : "</span> + result);</div><div class="line">        System.out.println(<span class="string">"cast : "</span> + (endTime - beginTime) / <span class="number">1000</span> + <span class="string">" second!"</span>);</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>测试结果：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">hello : my callable test! append some chars and return it!</div><div class="line">cast : 1 second!</div><div class="line"></div><div class="line">Process finished with exit code 0</div></pre></td></tr></table></figure></p>
+<p>Runnable工作的Demo：<br><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">package</span> com.callable.runnable;</div><div class="line"></div><div class="line"><span class="comment">/**</span></div><div class="line"> * Created on 2016/5/18.</div><div class="line"> */</div><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">RunnableImpl</span> <span class="keyword">implements</span> <span class="title">Runnable</span> </span>&#123;</div><div class="line"></div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="title">RunnableImpl</span><span class="params">(String acceptStr)</span> </span>&#123;</div><div class="line">        <span class="keyword">this</span>.acceptStr = acceptStr;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">private</span> String acceptStr;</div><div class="line"></div><div class="line">    <span class="meta">@Override</span></div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">run</span><span class="params">()</span> </span>&#123;</div><div class="line">        <span class="keyword">try</span> &#123;</div><div class="line">            <span class="comment">// 线程阻塞 1 秒，此时有异常产生，只能在方法内部消化，无法上抛</span></div><div class="line">            Thread.sleep(<span class="number">1000</span>);</div><div class="line">        &#125; <span class="keyword">catch</span> (InterruptedException e) &#123;</div><div class="line">            e.printStackTrace();</div><div class="line">        &#125;</div><div class="line">        <span class="comment">// 最终处理结果无法返回</span></div><div class="line">        System.out.println(<span class="string">"hello : "</span> + <span class="keyword">this</span>.acceptStr);</div><div class="line">    &#125;</div><div class="line"></div><div class="line"></div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</div><div class="line">        Runnable runnable = <span class="keyword">new</span> RunnableImpl(<span class="string">"my runable test!"</span>);</div><div class="line">        <span class="keyword">long</span> beginTime = System.currentTimeMillis();</div><div class="line">        <span class="keyword">new</span> Thread(runnable).start();</div><div class="line">        <span class="keyword">long</span> endTime = System.currentTimeMillis();</div><div class="line">        System.out.println(<span class="string">"cast : "</span> + (endTime - beginTime) / <span class="number">1000</span> + <span class="string">" second!"</span>);</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>测试结果：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">cast : 0 second!</div><div class="line">hello : my runable test!</div><div class="line"></div><div class="line">Process finished with exit code 0</div></pre></td></tr></table></figure></p>
+<p>写此篇的原因是一次面试中问到Callable与Runnable的区别，当时用的多的是Runnable，而Callable使用很少！<br>比较了两者后（网上查了不少），发现Callable在很多特殊的场景下还是很有用的！最后留点抄的代码，加深对Callable的认识！</p>
 
-      <h2 class="post-title">
+      
+    </div>
+
+    <div>
+      
         
-            <a class="post-title-link" href="/2017/07/17/android/power/PowerManagerService/PowerManagerService_Analysis_reproduction/" itemprop="url">
-              
-                <span itemprop="name">Android6.0中PowerManagerService分析（转载）</span>
-              
-            </a>
+
+      
+    </div>
+
+    <div>
+      
         
-      </h2>
 
-      <div class="post-meta">
-        <time class="post-time" itemprop="dateCreated"
-              datetime="2017-07-17T10:26:36+08:00"
-              content="2017-07-17" >
-          07-17
-        </time>
-      </div>
+      
+    </div>
 
-    </header>
+    <div>
+      
+        
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/reproductiond/" rel="tag"># reproductiond</a>
+          
+            <a href="/tags/concurrent/" rel="tag"># concurrent</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2017/07/20/algorithm/pow2gt/" rel="next" title="求比x大的最小的2的N次方数">
+                <i class="fa fa-chevron-left"></i> 求比x大的最小的2的N次方数
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
   </article>
 
 
-    
-  </div>
 
-  
+    <div class="post-spread">
+      
+    </div>
+  </div>
 
 
           </div>
@@ -343,6 +498,12 @@
 
 
           
+  <div class="comments" id="comments">
+    
+      <div id="uyan_frame"></div>
+    
+  </div>
+
 
         </div>
         
@@ -559,10 +720,10 @@
   
 
   
-    <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.1"></script>
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.1"></script>
 <script type="text/javascript" src="/js/src/post-details.js?v=5.1.1"></script>
 
-  
+
 
   
 
@@ -588,6 +749,10 @@
   
     
 
+    
+      <!-- UY BEGIN -->
+      <script type="text/javascript" src="http://v2.uyan.cc/code/uyan.js?uid=2139101"></script>
+      <!-- UY END -->
     
   
 
