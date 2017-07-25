@@ -13,6 +13,19 @@
       </tags>
   </entry>
   <entry>
+    <title><![CDATA[init Service xxx does not have a SELinux domain defined.]]></title>
+    <url>%2F2017%2F07%2F20%2Fandroid%2Fselinx%2FHow-to-add-init-service-md%2F</url>
+    <content type="text"><![CDATA[假如需要一个Service xxx. 增加xxx.te 123type xxx, domain;type xxx_exec, exec_type, file_type;init_daemon_domain(xxx) add xxx_exec into file_contexts 1/system/xbin/xxx u:object_r:xxx_exec:s0 重新编译bootimage和xxx本身 rebuild xxx是必须的。原因在于，selinux的规则似乎会和elf文件绑定？？]]></content>
+      <categories>
+        <category>android</category>
+      </categories>
+      <tags>
+        <tag>SELinux</tag>
+        <tag>android</tag>
+        <tag>original</tag>
+      </tags>
+  </entry>
+  <entry>
     <title><![CDATA[求比x大的最小的2的N次方数]]></title>
     <url>%2F2017%2F07%2F20%2Falgorithm%2Fpow2gt%2F</url>
     <content type="text"><![CDATA[求比x大的最小的2的N次方数 例如：x = 5， return 8;x = 8， return 8;x = 9， return 16; 12345678910int pow2gt(int x)&#123; --x; x |= x&gt;&gt;1; x |= x&gt;&gt;2; x |= x&gt;&gt;4; x |= x&gt;&gt;8; x |= x&gt;&gt;16; return x+1;&#125;]]></content>
@@ -31,10 +44,10 @@
         <category>android</category>
       </categories>
       <tags>
+        <tag>android</tag>
         <tag>android_m</tag>
         <tag>android_n</tag>
         <tag>power</tag>
-        <tag>android</tag>
         <tag>reproduction</tag>
       </tags>
   </entry>
