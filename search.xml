@@ -14,6 +14,19 @@
   </entry>
   <entry>
     <title><![CDATA[init Service xxx does not have a SELinux domain defined.]]></title>
+    <url>%2F2017%2F07%2F20%2Fandroid%2Fselinx%2FHow-to-add-init-service-md%2F</url>
+    <content type="text"><![CDATA[假如需要一个Service xxx. 增加xxx.te 123type xxx, domain;type xxx_exec, exec_type, file_type;init_daemon_domain(xxx) add xxx_exec into file_contexts 1/system/xbin/xxx u:object_r:xxx_exec:s0 重新编译bootimage和xxx本身 rebuild xxx是必须的。原因在于，selinux的规则似乎会和elf文件绑定？？]]></content>
+      <categories>
+        <category>android</category>
+      </categories>
+      <tags>
+        <tag>SELinux</tag>
+        <tag>android</tag>
+        <tag>original</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title><![CDATA[init Service xxx does not have a SELinux domain defined.]]></title>
     <url>%2F2017%2F07%2F20%2Fandroid%2Fselinx%2FHow-to-add-init-service%2F</url>
     <content type="text"><![CDATA[假如需要一个Service xxx. 增加xxx.te 123type xxx, domain;type xxx_exec, exec_type, file_type;init_daemon_domain(xxx) add xxx_exec into file_contexts 1/system/xbin/xxx u:object_r:xxx_exec:s0 重新编译bootimage和xxx本身 rebuild xxx是必须的。原因在于，selinux的规则似乎会和elf文件绑定？？]]></content>
       <categories>
